@@ -1,0 +1,58 @@
+<%- include('layout', { body: `
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1>Buy & Sell Used Campus Essentials Effortlessly</h1>
+        <p class="lead">A student-powered marketplace to make college life affordable and sustainable. Find drawing sets, lab tools, textbooks and more — all at student-friendly prices.</p>
+        <div class="cta-row"><a href="/items" class="btn primary">View Listings</a> <a href="/add" class="btn ghost">Sell an Item</a></div>
+      </div>
+      <div class="hero-image"><img src="/public/images/hero.jpg" alt="Student" /></div>
+    </div>
+  </section>
+
+  <section class="section vision">
+    <h2>Our Vision</h2>
+    <p>At DealX, we believe every student should have access to the tools they need to learn. We envision a campus community where resources are shared, waste is reduced, and students support each other's growth.</p>
+  </section>
+
+  <section class="section why">
+    <h2>Why DealX?</h2>
+    <div class="columns">
+      <div class="col">
+        <h3>Affordability</h3>
+        <p>New academic tools can be expensive. Many students skip or compromise on essential equipment because of cost. DealX connects buyers with affordable used items so no one misses out.</p>
+      </div>
+      <div class="col">
+        <h3>Sustainability</h3>
+        <p>Academia generates a lot of single-use purchases. By encouraging reuse, DealX reduces unnecessary waste and builds a circular campus economy.</p>
+      </div>
+      <div class="col">
+        <h3>Community</h3>
+        <p>DealX is student-first — every listing is an exchange between peers. It builds trust, helps students earn back money, and fosters collaboration.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Featured Listings</h2>
+    <div class="grid">
+      ${products.length ? products.map(p=>`
+        <article class="card">
+          <a class="media" href="/item/${p.id}"><img src="${p.image_url? p.image_url : '/public/placeholder.jpg'}" alt="${p.name}"></a>
+          <div class="card-body">
+            <h4 class="title"><a href="/item/${p.id}">${p.name}</a></h4>
+            <p class="muted">${(p.description||'').substring(0,100)}${(p.description||'').length>100?'...':''}</p>
+            <div class="row"><div class="price">₹${p.price}</div><a href="/item/${p.id}" class="btn small">View</a></div>
+          </div>
+        </article>`).join('') : `<div class="empty">No listings yet — be the first to add!</div>`}
+    </div>
+  </section>
+
+  <section class="section testimonials">
+    <h2>What students say</h2>
+    <div class="testimonials">
+      <blockquote>“I saved ₹1200 on drawing instruments — DealX made it so easy.” — Ayesha, 2nd year</blockquote>
+      <blockquote>“Sold my old books in a day. Loved the community feel.” — Rohit, 1st year</blockquote>
+    </div>
+  </section>
+` }) %>
