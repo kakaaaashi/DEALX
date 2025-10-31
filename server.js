@@ -39,9 +39,9 @@ const pool = new Pool({
 });
 
 // initialize DB
-async function initDb(){
+async function initDb() {
   const client = await pool.connect();
-  try{
+  try {
     await client.query(`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
@@ -57,45 +57,54 @@ async function initDb(){
     client.release();
   }
 }
-initDb().catch(e=>console.error('DB init failed', e));
+initDb().catch(e => console.error('DB init failed', e));
 
 // routes
-app.get('/healthz', (req,res) => res.send('OK'));
+app.get('/healthz', (req, res) => res.send('OK'));
 
-app.get('/', async (req,res)=>{
-  try{
+app.get('/', async (req, res) => {
+  try {
     const { rows } = await pool.query('SELECT * FROM products ORDER BY created_at DESC LIMIT 6');
     res.render('home', { products: rows });
-  }catch(e){
+  } catch (e) {
     console.error(e);
     res.render('home', { products: [] });
   }
 });
 
-app.get('/items', async (req,res)=>{
-  try{
+app.get('/items', async (req, res) => {
+  try {
     const { rows } = await pool.query('SELECT * FROM products ORDER BY created_at DESC');
     res.render('items', { products: rows });
-  }catch(e){
+  } catch (e) {
     console.error(e);
     res.render('items', { products: [] });
   }
 });
 
-app.get('/about', (req,res)=> res.render('about'));
+app.get('/about', (req, res) => res.render('about'));
 
-app.get('/add', (req,res)=> res.render('add'));
+app.get('/add', (req, res) => res.render('add'));
 
-app.post('/add', upload.single('image'), async (req,res)=>{
-  try{
+app.post('/add', upload.single('image'), async (req, res) => {
+  try {
     const { name, description, price, contact } = req.body;
     let imageUrl = null;
-    if (req.file){
-      if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET){
-        const result = await cloudinary.uploader.upload(req.file.path, { folder: 'dealx_uploads', use_filename:true, unique_filename:false, resource_type:'image' });
+    if (req.file) {
+      if (
+        process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET
+      ) {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'dealx_uploads',
+          use_filename: true,
+          unique_filename: false,
+          resource_type: 'image'
+        });
         imageUrl = result.secure_url;
       } else {
-        # fallback: move to public/uploads
+        // fallback: move to public/uploads
         const dest = path.join(__dirname, 'public', 'uploads');
         if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
         const ext = path.extname(req.file.originalname) || '.jpg';
@@ -105,21 +114,31 @@ app.post('/add', upload.single('image'), async (req,res)=>{
         imageUrl = '/public/uploads/' + filename;
       }
     }
-    await pool.query('INSERT INTO products (name, description, price, contact, image_url) VALUES ($1,$2,$3,$4,$5)', [name, description, price, contact, imageUrl]);
-    if (req.file && fs.existsSync(req.file.path)) { try{ fs.unlinkSync(req.file.path); }catch(e){} }
+
+    await pool.query(
+      'INSERT INTO products (name, description, price, contact, image_url) VALUES ($1,$2,$3,$4,$5)',
+      [name, description, price, contact, imageUrl]
+    );
+
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {}
+    }
+
     res.redirect('/items');
-  }catch(e){
+  } catch (e) {
     console.error('Add error', e);
     res.status(500).send('Upload failed');
   }
 });
 
-app.get('/item/:id', async (req,res)=>{
-  try{
+app.get('/item/:id', async (req, res) => {
+  try {
     const { rows } = await pool.query('SELECT * FROM products WHERE id=$1', [req.params.id]);
     if (!rows[0]) return res.redirect('/items');
     res.render('item', { item: rows[0] });
-  }catch(e){
+  } catch (e) {
     console.error(e);
     res.redirect('/items');
   }
@@ -129,4 +148,4 @@ app.get('/item/:id', async (req,res)=>{
 app.use(express.static(path.join(__dirname, 'public')));
 
 // start
-app.listen(PORT, ()=> console.log(`DealX running on port ${PORT}`));
+app.listen(PORT, () => console.log(`DealX running on port ${PORT}`));
